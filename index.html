@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>Task Tracker</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0f0f1a;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+
+        /* ── AUTH ── */
+        #auth-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .auth-box {
+            background: #1a1a2e;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 40px;
+            width: 380px;
+        }
+
+        .auth-box h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+            color: #7c6af7;
+        }
+
+        .auth-box p { color: #888; margin-bottom: 24px; font-size: 14px; }
+
+        .tabs { display: flex; gap: 8px; margin-bottom: 24px; }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #333;
+            background: transparent;
+            color: #888;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: #7c6af7;
+            border-color: #7c6af7;
+            color: white;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            background: #0f0f1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 14px;
+            margin-bottom: 12px;
+            outline: none;
+            transition: border 0.2s;
+        }
+
+        input:focus, select:focus, textarea:focus { border-color: #7c6af7; }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: #7c6af7;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn:hover { background: #6a58e0; }
+
+        .error-msg {
+            background: #2d1b1b;
+            border: 1px solid #7c2020;
+            color: #f87171;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 12px;
+            display: none;
+        }
+
+        /* ── APP ── */
+        #app-section { display: none; }
+
+        header {
+            background: #1a1a2e;
+            border-bottom: 1px solid #333;
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 { font-size: 20px; color: #7c6af7; }
+
+        .header-right { display: flex; align-items: center; gap: 16px; }
+
+        .username { color: #888; font-size: 14px; }
+
+        .logout-btn {
+            padding: 8px 16px;
+            background: transparent;
+            border: 1px solid #444;
+            border-radius: 8px;
+            color: #888;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .logout-btn:hover { border-color: #f87171; color: #f87171; }
+
+        .main { padding: 32px; max-width: 900px; margin: 0 auto; }
+
+        /* ── ADD TASK ── */
+        .add-task-box {
+            background: #1a1a2e;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 32px;
+        }
+
+        .add-task-box h2 { font-size: 16px; margin-bottom: 16px; color: #aaa; }
+
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+        .add-task-box .btn { margin-top: 4px; }
+
+        /* ── FILTERS ── */
+        .filters {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            background: transparent;
+            border: 1px solid #333;
+            border-radius: 20px;
+            color: #888;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .filter-btn.active {
+            background: #7c6af7;
+            border-color: #7c6af7;
+            color: white;
+        }
+
+        /* ── TASKS ── */
+        .tasks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .task-card {
+            background: #1a1a2e;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 20px;
+            transition: border 0.2s;
+        }
+
+        .task-card:hover { border-color: #7c6af7; }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .task-title { font-size: 15px; font-weight: 600; flex: 1; margin-right: 8px; }
+
+        .task-desc { color: #888; font-size: 13px; margin-bottom: 14px; line-height: 1.5; }
+
+        .task-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .badges { display: flex; gap: 6px; flex-wrap: wrap; }
+
+        .badge {
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-todo { background: #1e2a3a; color: #60a5fa; }
+        .badge-in_progress { background: #2a1e3a; color: #c084fc; }
+        .badge-done { background: #1e3a2a; color: #4ade80; }
+        .badge-low { background: #1e3a1e; color: #86efac; }
+        .badge-medium { background: #3a2e1e; color: #fcd34d; }
+        .badge-high { background: #3a1e1e; color: #f87171; }
+
+        .task-actions { display: flex; gap: 6px; }
+
+        .action-btn {
+            padding: 6px 12px;
+            border: 1px solid #333;
+            border-radius: 6px;
+            background: transparent;
+            color: #888;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover { border-color: #7c6af7; color: #7c6af7; }
+
+        .action-btn.delete:hover { border-color: #f87171; color: #f87171; }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #555;
+        }
+
+        .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+
+        .empty-state p { font-size: 15px; }
+
+        /* ── STATUS SELECT ── */
+        .status-select {
+            padding: 4px 8px;
+            font-size: 12px;
+            border-radius: 6px;
+            margin-bottom: 0;
+            width: auto;
+        }
+    </style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="auth-section">
+    <div class="auth-box">
+        <h1>📋 Task Tracker</h1>
+        <p>Керуй своїми задачами</p>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="showTab('login')">Увійти</button>
+            <button class="tab-btn" onclick="showTab('register')">Реєстрація</button>
+        </div>
+
+        <div id="auth-error" class="error-msg"></div>
+
+        <!-- Login -->
+        <div id="login-form">
+            <input type="text" id="login-username" placeholder="Імʼя користувача">
+            <input type="password" id="login-password" placeholder="Пароль">
+            <button class="btn" onclick="login()">Увійти</button>
+        </div>
+
+        <!-- Register -->
+        <div id="register-form" style="display:none">
+            <input type="text" id="reg-username" placeholder="Імʼя користувача">
+            <input type="email" id="reg-email" placeholder="Email (необовʼязково)">
+            <input type="password" id="reg-password" placeholder="Пароль">
+            <button class="btn" onclick="register()">Зареєструватися</button>
+        </div>
+    </div>
+</div>
+
+<!-- APP -->
+<div id="app-section">
+    <header>
+        <h1>📋 Task Tracker</h1>
+        <div class="header-right">
+            <span class="username" id="username-display"></span>
+            <button class="logout-btn" onclick="logout()">Вийти</button>
+        </div>
+    </header>
+
+    <div class="main">
+        <!-- Add Task -->
+        <div class="add-task-box">
+            <h2>+ Нова задача</h2>
+            <input type="text" id="new-title" placeholder="Назва задачі">
+            <textarea id="new-desc" placeholder="Опис (необовʼязково)" rows="2"></textarea>
+            <div class="form-row">
+                <select id="new-status">
+                    <option value="todo">📝 To Do</option>
+                    <option value="in_progress">⚡ In Progress</option>
+                    <option value="done">✅ Done</option>
+                </select>
+                <select id="new-priority">
+                    <option value="low">🟢 Low</option>
+                    <option value="medium" selected>🟡 Medium</option>
+                    <option value="high">🔴 High</option>
+                </select>
+            </div>
+            <button class="btn" onclick="createTask()">Додати задачу</button>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters">
+            <button class="filter-btn active" onclick="filterTasks('all', this)">Всі</button>
+            <button class="filter-btn" onclick="filterTasks('todo', this)">📝 To Do</button>
+            <button class="filter-btn" onclick="filterTasks('in_progress', this)">⚡ In Progress</button>
+            <button class="filter-btn" onclick="filterTasks('done', this)">✅ Done</button>
+            <button class="filter-btn" onclick="filterTasks('high', this)">🔴 High Priority</button>
+        </div>
+
+        <!-- Tasks -->
+        <div class="tasks-grid" id="tasks-container"></div>
+    </div>
+</div>
+
+<script>
+    const API = 'http://127.0.0.1:8000/api';
+    let allTasks = [];
+    let currentFilter = 'all';
+
+    // ── AUTH ──────────────────────────────────────────
+    function showTab(tab) {
+        document.getElementById('login-form').style.display = tab === 'login' ? 'block' : 'none';
+        document.getElementById('register-form').style.display = tab === 'register' ? 'block' : 'none';
+        document.querySelectorAll('.tab-btn').forEach((b, i) => {
+            b.classList.toggle('active', (tab === 'login' && i === 0) || (tab === 'register' && i === 1));
+        });
+        showError('');
+    }
+
+    function showError(msg) {
+        const el = document.getElementById('auth-error');
+        el.textContent = msg;
+        el.style.display = msg ? 'block' : 'none';
+    }
+
+    async function login() {
+        const username = document.getElementById('login-username').value;
+        const password = document.getElementById('login-password').value;
+        if (!username || !password) return showError('Заповни всі поля');
+
+        const res = await fetch(`${API}/token/`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({username, password})
+        });
+
+        if (res.ok) {
+            const data = await res.json();
+            localStorage.setItem('access', data.access);
+            localStorage.setItem('refresh', data.refresh);
+            localStorage.setItem('username', username);
+            showApp(username);
+        } else {
+            showError('Невірний логін або пароль');
+        }
+    }
+
+    async function register() {
+        const username = document.getElementById('reg-username').value;
+        const email = document.getElementById('reg-email').value;
+        const password = document.getElementById('reg-password').value;
+        if (!username || !password) return showError('Заповни імʼя та пароль');
+
+        const res = await fetch(`${API}/register/`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({username, email, password})
+        });
+
+        if (res.ok) {
+            showError('');
+            showTab('login');
+            document.getElementById('login-username').value = username;
+            alert('Реєстрація успішна! Тепер увійди.');
+        } else {
+            const data = await res.json();
+            showError(JSON.stringify(data));
+        }
+    }
+
+    function logout() {
+        localStorage.clear();
+        document.getElementById('auth-section').style.display = 'flex';
+        document.getElementById('app-section').style.display = 'none';
+    }
+
+    function showApp(username) {
+        document.getElementById('auth-section').style.display = 'none';
+        document.getElementById('app-section').style.display = 'block';
+        document.getElementById('username-display').textContent = '👤 ' + username;
+        loadTasks();
+    }
+
+    // ── TASKS ─────────────────────────────────────────
+    function getHeaders() {
+        return {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + localStorage.getItem('access')
+        };
+    }
+
+    async function loadTasks() {
+        const res = await fetch(`${API}/tasks/`, {headers: getHeaders()});
+        if (res.status === 401) return logout();
+        allTasks = await res.json();
+        renderTasks();
+    }
+
+    async function createTask() {
+        const title = document.getElementById('new-title').value.trim();
+        if (!title) return alert('Введи назву задачі');
+
+        const task = {
+            title,
+            description: document.getElementById('new-desc').value,
+            status: document.getElementById('new-status').value,
+            priority: document.getElementById('new-priority').value,
+        };
+
+        const res = await fetch(`${API}/tasks/`, {
+            method: 'POST',
+            headers: getHeaders(),
+            body: JSON.stringify(task)
+        });
+
+        if (res.ok) {
+            document.getElementById('new-title').value = '';
+            document.getElementById('new-desc').value = '';
+            loadTasks();
+        }
+    }
+
+    async function updateStatus(id, status) {
+        await fetch(`${API}/tasks/${id}/`, {
+            method: 'PATCH',
+            headers: getHeaders(),
+            body: JSON.stringify({status})
+        });
+        loadTasks();
+    }
+
+    async function deleteTask(id) {
+        if (!confirm('Видалити задачу?')) return;
+        await fetch(`${API}/tasks/${id}/`, {method: 'DELETE', headers: getHeaders()});
+        loadTasks();
+    }
+
+    function filterTasks(filter, btn) {
+        currentFilter = filter;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderTasks();
+    }
+
+    function renderTasks() {
+        const container = document.getElementById('tasks-container');
+        let tasks = allTasks;
+
+        if (currentFilter === 'high') {
+            tasks = tasks.filter(t => t.priority === 'high');
+        } else if (currentFilter !== 'all') {
+            tasks = tasks.filter(t => t.status === currentFilter);
+        }
+
+        if (tasks.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state" style="grid-column: 1/-1">
+                    <div class="icon">📭</div>
+                    <p>Тут поки нічого немає</p>
+                </div>`;
+            return;
+        }
+
+        container.innerHTML = tasks.map(task => `
+            <div class="task-card">
+                <div class="task-header">
+                    <div class="task-title">${task.title}</div>
+                </div>
+                ${task.description ? `<div class="task-desc">${task.description}</div>` : ''}
+                <div class="task-footer">
+                    <div class="badges">
+                        <span class="badge badge-${task.status}">
+                            ${task.status === 'todo' ? '📝 To Do' : task.status === 'in_progress' ? '⚡ In Progress' : '✅ Done'}
+                        </span>
+                        <span class="badge badge-${task.priority}">
+                            ${task.priority === 'low' ? '🟢' : task.priority === 'medium' ? '🟡' : '🔴'} ${task.priority}
+                        </span>
+                    </div>
+                    <div class="task-actions">
+                        <select class="action-btn status-select" onchange="updateStatus(${task.id}, this.value)">
+                            <option value="todo" ${task.status==='todo'?'selected':''}>To Do</option>
+                            <option value="in_progress" ${task.status==='in_progress'?'selected':''}>In Progress</option>
+                            <option value="done" ${task.status==='done'?'selected':''}>Done</option>
+                        </select>
+                        <button class="action-btn delete" onclick="deleteTask(${task.id})">🗑</button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // ── INIT ──────────────────────────────────────────
+    if (localStorage.getItem('access')) {
+        showApp(localStorage.getItem('username'));
+    }
+</script>
+</body>
+</html>
